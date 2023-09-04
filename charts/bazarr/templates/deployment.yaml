@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bazarr.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "bazarr.name" . }}
+    helm.sh/chart: {{ include "bazarr.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "bazarr.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "bazarr.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 6767
+              protocol: TCP
+          env:
+            - name: PYTHONWARNINGS
+              # Get rid of all those unverified warnigns
+              value: "ignore:Unverified HTTPS request"
+            - name: PUID
+              value: {{ .Values.bazarr.puid | quote }}
+            - name: PGID
+              value: {{ .Values.bazarr.guid | quote }}
+            - name: TZ
+              value: America/Vancouver
+          livenessProbe:
+            httpGet:
+              path: /notifications
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /notifications
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - mountPath: /movies
+              name: movies
+              {{- if .Values.bazarr.persistence.movies.subPath }}
+              subPath: "{{ .Values.bazarr.persistence.movies.subPath }}"
+              {{- end }}
+            - mountPath: /tv
+              name: tv
+              {{- if .Values.bazarr.persistence.tv.subPath }}
+              subPath: "{{ .Values.bazarr.persistence.tv.subPath }}"
+              {{- end }}
+            {{- range .Values.bazarr.extraHostMounts }}
+            - name: {{ regexReplaceAllLiteral "\\W+" . "-" | lower | trimAll "-" | quote }}
+              mountPath: {{ . | quote }}
+            {{- end }}
+      volumes:
+        - name: config
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ template "bazarr.fullname" . }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: movies
+        {{- if .Values.bazarr.persistence.movies.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.bazarr.persistence.movies.existingClaim }}{{ .Values.bazarr.persistence.movies.existingClaim }}{{- else }}{{ template "bazarr.fullname" . }}-movies{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: tv
+        {{- if .Values.bazarr.persistence.tv.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.bazarr.persistence.tv.existingClaim }}{{ .Values.bazarr.persistence.tv.existingClaim }}{{- else }}{{ template "bazarr.fullname" . }}-tv{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- range .Values.bazarr.extraHostMounts }}
+        - name: {{ regexReplaceAllLiteral "\\W+" . "-" | lower | trimAll "-" | quote }}
+          hostPath:
+            path: {{ . | quote }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

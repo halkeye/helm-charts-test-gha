@@ -1,0 +1,10 @@
+apiVersion: v1
+appVersion: "latest"
+deprecated: true
+description: 7 Days to Die is an open world, voxel-based, sandbox game that is a unique mash up of First Person Shooter, Survival Horror, Tower Defense and Role Playing Games combining combat, crafting, looting, mining, exploration, and character growth.
+name: sevendaysdie
+version: 0.0.5
+icon: https://gamepedia.cursecdn.com/7daystodie_gamepedia/thumb/1/1f/OfficalWiki.png/600px-OfficalWiki.png?version=53cf53a4d2849bbdabf215f58b3b43ef
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

@@ -1,0 +1,139 @@
+# Default values for wallabag.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: wallabag/wallabag
+  tag: "{{ .Chart.AppVersion }}"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Define deployment strategy - IMPORTANT: use rollingUpdate: null when use Recreate strategy.
+# It prevents from merging with existing map keys which are forbidden.
+strategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 1
+  #   maxUnavailable: 0
+  #
+  # or
+  #
+  # type: Recreate
+  # rollingUpdate: null
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # privileged: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  externalTrafficPolicy:
+  type: ClusterIP
+  port: 80
+
+probes:
+  liveness:
+    failureThreshold: 5
+    periodSeconds: 10
+  readiness:
+    failureThreshold: 5
+    periodSeconds: 10
+  startup:
+    initialDelaySeconds: 5
+    failureThreshold: 30
+    periodSeconds: 10
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+deploymentAnnotations: {}
+
+## Persist configuration to a persistent volume
+persistence:
+  # persistence.enabled - Should disk persistence be enabled
+  enabled: false
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  existingClaim: ""
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
+  skipuninstall: false
+
+wallabag:
+  secret: ovmpmAWXRCabNlMgzlzFXDYmCFfzGv
+  postgres:
+    name: "wallabag"
+    user: "wallabag"
+    password: "password"
+    host: "postgresql"
+    port: "5432"
+  redis:
+    host: "redis-master"
+    password: "password"
+  sentry: ""
+  email:
+    from: "no-reply@example.org"
+    server: ""
+    encryption: ~
+    auth_mode: ~
+  public_url: "http://wallabag.org"
+  server_name: "Your wallabag instance"

@@ -1,0 +1,15 @@
+apiVersion: v1
+appVersion: "1.0"
+description: Docker registry v2 static UI server.
+name: reg-server
+version: 0.1.0
+keywords:
+  - registry
+  - docker
+home: https://github.com/genuinetools/reg/
+sources:
+  - https://github.com/genuinetools/reg/
+  - https://r.j3ss.co/repo/reg-server
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

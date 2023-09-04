@@ -1,0 +1,13 @@
+apiVersion: v1
+appVersion: "latest"
+description: IRC-to-Slack gateway
+name: irc-slack
+version: 0.1.1
+deprecated: true
+keywords:
+  - irc
+  - slack
+home: https://github.com/insomniacslk/irc-slack
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

@@ -1,0 +1,1 @@
+Openzwave daemon should be running and talking to {{ .Values.mqtt.server }}

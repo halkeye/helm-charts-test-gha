@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sevendaysdie.fullname" . }}
+  labels:
+{{ include "sevendaysdie.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "sevendaysdie.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "sevendaysdie.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "sevendaysdie.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: prepare-env
+          image: busybox:1.28
+          command: ['sh']
+          args:
+            - -xec
+            - |-
+              mkdir -p /app/.local/share/7DaysToDie/
+              cp /configmap/serverconfig.xml /app/.local/share/7DaysToDie/serverconfig.xml
+              mkdir -p /app/.local/share/7DaysToDie/Saves/
+              cp /configmap/serveradmin.xml /app/.local/share/7DaysToDie/Saves/serveradmin.xml
+              mkdir -p /app/.local/share/7DaysToDie/Mods
+              ln -s  /app/.local/share/7DaysToDie/Mods /steamcmd/7dtd/Mods
+              chown 1000:1000 -R /app/.local/share/7DaysToDie/ /steamcmd/7dtd
+          volumeMounts:
+            - name: data
+              mountPath: /app/.local/share/7DaysToDie
+            - name: configmap
+              mountPath: /configmap
+            - name: game
+              mountPath: /steamcmd/7dtd
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            #- name: SEVEN_DAYS_TO_DIE_CONFIG_FILE
+            #  value: "/config/serverconfig.xml"
+            - name: SEVEN_DAYS_TO_DIE_TELNET_PASSWORD
+              value: {{ .Values.settings.ControlPanelPassword | quote }}
+          ports:
+            - name: sevendays-tcp-1
+              containerPort: 26900
+              protocol: TCP
+            - name: sevendays-udp-1
+              containerPort: 26900
+              protocol: UDP
+            - name: sevendays-udp-2
+              containerPort: 26901
+              protocol: UDP
+            - name: sevendays-udp-3
+              containerPort: 26902
+              protocol: UDP
+            - name: sevendays-adm-1
+              containerPort: 8080
+              protocol: TCP
+            - name: sevendays-adm-2
+              containerPort: 8081
+              protocol: TCP
+            # incase your using alloc plugin
+            - name: http
+              containerPort: 8082
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /app/.local/share/7DaysToDie
+            - name: game
+              mountPath: /steamcmd/7dtd
+          #livenessProbe:
+          #  httpGet:
+          #    path: /
+          #    port: http
+          #readinessProbe:
+          #  httpGet:
+          #    path: /
+          #    port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: configmap
+          configMap:
+            name: {{ template "sevendaysdie.fullname" . }}
+        - name: game
+          emptyDir: {}
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            {{- if .Values.persistence.existingClaim }}
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+            claimName: {{ template "sevendaysdie.fullname" . }}
+            {{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

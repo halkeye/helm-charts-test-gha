@@ -1,0 +1,154 @@
+# Default values for mastodon-twitter-poster.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: halkeye/mastodon-twitter-poster
+  tag: "{{ .Chart.AppVersion }}"
+  pullPolicy: IfNotPresent
+
+statsd_exporter:
+  enabled: false
+  image:
+    repository: prom/statsd-exporter
+    tag: "v0.20.1"
+    pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # privileged: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  externalTrafficPolicy:
+  type: ClusterIP
+  port: 3000
+
+probes:
+  liveness:
+    failureThreshold: 5
+    periodSeconds: 10
+  readiness:
+    failureThreshold: 5
+    periodSeconds: 10
+  startup:
+    initialDelaySeconds: 5
+    failureThreshold: 30
+    periodSeconds: 10
+
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+deploymentAnnotations: {}
+
+config:
+  # config.app_name -- The name that's going to be displayed in the page, but also in the bottom of toots as the app name
+  app_name: "Mastodon Twitter Crossposter"
+  # config.domain -- The domain where the app can be accessed
+  domain:
+  # config.stats -- The stats page, if exists (ex, https://grafana.example.com)
+  stats:
+  # config.repo -- The repo, if it's a fork (optional)
+  repo:
+
+  # config.redis_url -- Redis url in the format of redis://localhost:6379/1
+  redis_url:
+
+  # If you are using statsd to save metrics, you need the three following variables
+  statsd:
+    # config.statsd.enabled - If you are using statsd to save metrics
+    enabled: false
+    # config.statsd.host - Where to send statsd stats
+    host: 127.0.0.1
+    # config.statsd.port - Where to send statsd stats
+    port: 8125
+
+  twitter:
+    client:
+      id:
+      secret:
+
+  librato:
+    email:
+    token:
+
+  database:
+    # can provide a uri instead as provided by digitalocean or heroku
+    uri: ''
+    host:
+    name: mastodon_twitter_poster_production
+    user: mastodon_twitter_poster
+    pass:
+
+  federation_domains:
+    allowed: []
+    blocked: []
+
+  # config.announcement_url -- The fediverse account where announcements about this instance of the crossposter can be found
+  announcement_url:
+
+  admin:
+    # config.admin.twitter -- Twitter account of the admin of this instance, if exists
+    twitter:
+    fedi:
+      # config.admin.fedi.address -- Fediverse account that users can use to reach the admin in case of issues (url)
+      address:
+      # config.admin.fedi.at -- Fediverse account that users can use to reach the admin in case of issues (label)
+      at:
+  # config.alternative_twitter_domain -- instead of @user@twitter.com, the user will be @user@<ALTERNATIVE_TWITTER_DOMAIN>
+  # You can use twitter.activitypub.actor (or your own installation of it) to get nice mentions of twitter's people
+  alternative_twitter_domain:

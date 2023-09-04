@@ -1,0 +1,22 @@
+apiVersion: v2
+appVersion: "4.3.0-alpine"
+description: Modern web IRC client designed for self-hosting
+name: thelounge
+version: 4.3.1
+icon: https://raw.githubusercontent.com/thelounge/thelounge/master/client/img/logo-grey-bg-512x512px.png
+type: application
+keywords:
+  - thelounge
+  - irc
+home: https://thelounge.chat/
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Bump to 4.3.0
+    - Use new templates
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: thelounge
+      image: thelounge/thelounge:4.3.0-alpine

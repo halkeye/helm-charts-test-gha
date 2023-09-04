@@ -1,0 +1,157 @@
+# Default values for sevendaysdie.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: didstopia/7dtd-server
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+nonGameService:
+  type: ClusterIP
+  annotations: {}
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: false
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+settings:
+  # settings.ServerName -- Whatever you want the name of the server to be.
+  ServerName: "My Game Host"
+  # settings.ServerDescription -- Whatever you want the server description to be, will be shown in the server browser.
+  ServerDescription: "A 7 Days to Die server"
+  # settings.ServerWebsite -- Website URL for the server, will be shown in the serverbrowser as a clickable link
+  ServerWebsite: ""
+  # settings.ServerPassword -- Password to gain entry to the server
+  ServerPassword: ""
+  # settings.ServerLoginConfirmationText -- If set the user will see the message during joining the server and has to confirm it before continuing. For more complex changes to this window you can change the "serverjoinrulesdialog" window in XUi
+  ServerLoginConfirmationText: ""
+  # settings.ServerVisibility -- Visibility of this server: 2 = public, 1 = only shown to friends, 0 = not listed. As you are never friend of a dedicated server setting this to "1" will only work when the first player connects manually by IP.
+  ServerVisibility: "2"
+  # settings.ServerDisabledNetworkProtocols -- Networking protocols that should not be used. Separated by comma. Possible values: LiteNetLib, SteamNetworking. Dedicated servers should disable SteamNetworking if there is no NAT router in between your users and the server or when port-forwarding is set up correctly
+  ServerDisabledNetworkProtocols: "SteamNetworking"
+  # settings.ServerMaxWorldTransferSpeedKiBs -- Maximum (!) speed in kiB/s the world is transferred at to a client on first connect if it does not have the world yet. Maximum is about 1300 kiB/s, even if you set a higher value.
+  ServerMaxWorldTransferSpeedKiBs: "512"
+  # settings.ServerMaxPlayerCount -- Maximum Concurrent Players
+  ServerMaxPlayerCount: "8"
+  # settings.ServerReservedSlots -- Out of the MaxPlayerCount this many slots can only be used by players with a specific permission level -->
+  ServerReservedSlots: "0"
+  # settings.ServerReservedSlotsPermission -- Required permission level to use reserved slots above
+  ServerReservedSlotsPermission: "100"
+  # settings.ServerAdminSlots -- This many admins can still join even if the server has reached MaxPlayerCount
+  ServerAdminSlots: "0"
+  # settings.ServerAdminSlotsPermission -- Required permission level to use the admin slots above
+  ServerAdminSlotsPermission: "0"
+  # settings.ControlPanelPort -- Password to gain entry to the control panel
+  ControlPanelPassword: "CHANGEME"
+
+  # settings.TelnetPassword -- Password to gain entry to telnet interface. If no password is set the server will only listen on the local loopback interface
+  TelnetPassword: ""
+
+  # settings.EACEnabled -- Enables/Disables EasyAntiCheat
+  EACEnabled: "true"
+  # settings.PersistentPlayerProfiles -- If disabled a player can join with any selected profile. If true they will join with the last profile they joined with
+  PersistentPlayerProfiles: "false"
+
+  # settings.GameWorld -- "RWG" (see WorldGenSeed and WorldGenSize options below) or any already existing world name in the Worlds folder (currently shipping with e.g. "Navezgane", "PREGEN01", ...)
+  GameWorld: "Navezgane"
+  # settings.WorldGenSeed -- If RWG this is the seed for the generation of the new world. If a world with the resulting name already exists it will simply load it
+  WorldGenSeed: "asdf"
+  # settings.WorldGenSize -- If RWG this controls the width and height of the created world. It is also used in combination with WorldGenSeed to create the internal RWG seed thus also creating a unique map name even if using the same WorldGenSeed. Has to be between 2048 and 16384, though large map sizes will take long to generate / download / load
+  WorldGenSize: "4096"
+  # settings.GameName -- Whatever you want the game name to be. This affects the save game name as well as the seed used when placing decoration (trees etc) in the world. It does not control the generic layout of the world if creating an RWG world -->
+  GameName: "My Game"
+
+permissions:
+  # dm: 0
+  # kick: 1
+  # say: 1000
+  chunkcache: 0
+  debugshot: 0
+  debugweather: 0
+  getgamepref: 0
+  getgamestat: 0
+  getoptions: 0
+  gettime: 1000
+  gfx: 0
+  help: 2000
+  listplayerids: 1000
+  listthreads: 0
+  memcl: 0
+  settempunit: 0
+
+whitelist: []
+  # - id: $steamId
+blacklist: []
+  # - id: $steamId
+  #   unbandate: ""

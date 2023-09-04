@@ -1,0 +1,21 @@
+apiVersion: v2
+type: application
+appVersion: "4.11"
+version: 1.0.0
+name: pgadmin
+description: pgAdmin is the most popular and feature rich Open Source administration and development platform for PostgreSQL, the most advanced Open Source database in the world.
+keywords:
+  - pgadmin
+  - postgres
+home: https://www.pgadmin.org/
+icon: https://raw.githubusercontent.com/postgres/pgadmin4/master/runtime/pgAdmin4.png
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Upgrade to latest helm chart templates
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: pgadmin
+      image: chorss/docker-pgadmin4:4.11

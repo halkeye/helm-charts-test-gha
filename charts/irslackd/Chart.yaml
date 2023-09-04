@@ -1,0 +1,12 @@
+apiVersion: v1
+appVersion: "1.0"
+description: Self-hosted IRC gateway to Slack 
+name: irslackd
+version: 0.1.0
+keywords:
+  - slack
+  - irc
+  - bridge
+homepage: https://github.com/adsr/irslackd
+sources:
+  - https://github.com/adsr/irslackd

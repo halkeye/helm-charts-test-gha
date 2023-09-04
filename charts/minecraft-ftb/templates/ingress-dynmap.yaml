@@ -1,0 +1,39 @@
+{{- if .Values.dynmap.enabled -}}
+{{- if .Values.dynmap.ingress.enabled -}}
+{{- $fullName := include "minecraft-ftb.fullname" . -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-dynmap
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.dynmap.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.dynmap.ingress.tls }}
+  tls:
+  {{- range .Values.dynmap.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.dynmap.ingress.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ $fullName }}-dynmap
+              servicePort: dynmap
+  {{- end }}
+{{- end }}
+{{- end }}

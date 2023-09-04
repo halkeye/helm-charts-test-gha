@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "minecraft-ftb.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: dynmap
+              containerPort: 8123
+              protocol: TCP
+            - name: mcmyadmin
+              containerPort: 8080
+              protocol: TCP
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+          volumeMounts:
+          - name: minecraft-ftb-data
+            mountPath: /opt/minecraft/world
+            subPath: world
+          - name: minecraft-ftb-configmap
+            mountPath: /opt/minecraft/ops.json
+            subPath: ops.json
+          - name: minecraft-ftb-data
+            mountPath: /opt/minecraft/backups
+            subPath: backups
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: minecraft-ftb-configmap
+        configMap:
+          name: {{ template "minecraft-ftb.fullname" . }}
+      - name: minecraft-ftb-data
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ template "minecraft-ftb.fullname" . }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

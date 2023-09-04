@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pocketmine.fullname" . }}
+  annotations:
+    kubernetes.io/allow-mixed-protocol: "true"
+  labels:
+    app.kubernetes.io/name: {{ include "pocketmine.name" . }}
+    helm.sh/chart: {{ include "pocketmine.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  {{ if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{ end }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: server
+      protocol: UDP
+      name: server
+  selector:
+    app.kubernetes.io/name: {{ include "pocketmine.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

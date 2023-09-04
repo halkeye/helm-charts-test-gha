@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postfix.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "postfix.name" . }}
+    helm.sh/chart: {{ include "postfix.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postfix.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "postfix.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9154"
+        prometheus.io/scrape: "true"
+{{- end }}
+    spec:
+{{- if .Values.metrics.enabled }}
+      initContainers:
+        - name: create-empty-logs
+          image: "{{ .Values.initContainer.image.repository }}:{{ tpl .Values.initContainer.image.tag . }}"
+          imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+          command: ["touch", "/var/log/maillog"]
+          volumeMounts:
+          - name: varlog
+            mountPath: /var/log
+{{- end }}
+      containers:
+{{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: "{{ .Values.metrics.image.repository }}:{{ tpl .Values.metrics.image.tag . }}"
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: 9154
+              protocol: TCP
+          volumeMounts:
+          - name: varlog
+            mountPath: /var/log
+          - name: spool
+            mountPath: /var/spool/postfix
+          resources:
+            {{- toYaml .Values.metrics.resources | nindent 12 }}
+{{- end }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- if .Values.postfix.relay_host }}
+            - name: TX_SMTP_RELAY_HOST
+              value: {{ .Values.postfix.relay_host | quote }}
+            {{- end }}
+            {{- if .Values.postfix.relay_myhostname }}
+            - name: TX_SMTP_RELAY_MYHOSTNAME
+              value: {{ .Values.postfix.relay_myhostname | quote }}
+            {{- end }}
+            {{- if .Values.postfix.relay_username }}
+            - name: TX_SMTP_RELAY_USERNAME
+              value: {{ .Values.postfix.relay_username | quote }}
+            {{- end }}
+            {{- if .Values.postfix.relay_password }}
+            - name: TX_SMTP_RELAY_PASSWORD
+              value: {{ .Values.postfix.relay_password | quote }}
+            {{- end }}
+          ports:
+            - name: smtp
+              containerPort: 25
+              protocol: TCP
+#          livenessProbe:
+#            tcpSocket:
+#              port: smtp
+#          readinessProbe:
+#            tcpSocket:
+#              port: smtp
+          volumeMounts:
+          - name: varlog
+            mountPath: /var/log
+          - name: spool
+            mountPath: /var/spool/postfix
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: varlog
+        emptyDir: {}
+      - name: spool
+        ## TODO - make this optionally persistent
+        emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

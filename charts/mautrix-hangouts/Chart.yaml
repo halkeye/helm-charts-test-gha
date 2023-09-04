@@ -1,0 +1,39 @@
+apiVersion: v2
+
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application.
+appVersion: "latest"
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+version: 0.1.6
+name: mautrix-hangouts
+description: A Matrix-Hangouts puppeting bridge
+depreciated: true
+keywords:
+  - synapse
+  - chat
+  - matrix
+  - bridge
+  - hangouts
+home: https://matrix.org/docs/projects/bridge/mautrix-hangouts/
+sources:
+  - https://github.com/tulir/mautrix-hangouts
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - "renaming to mautrix-googlechat"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: mautrix-hangouts
+      image: dock.mau.dev/tulir/mautrix-hangouts:latest

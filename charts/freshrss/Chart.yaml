@@ -1,0 +1,11 @@
+apiVersion: v1
+appVersion: "1.16.2"
+description: FreshRSS is a self-hosted RSS feed aggregator.
+name: freshrss
+version: 1.16.2
+icon: https://raw.githubusercontent.com/FreshRSS/FreshRSS/master/docs/img/FreshRSS-logo.png
+sources:
+  - https://github.com/FreshRSS/FreshRSS
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

@@ -1,0 +1,67 @@
+{{- if .Values.dynmap.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minecraft-ftb.fullname" . }}-dynmap
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.dynmap.service.type }}
+  ports:
+    - port: 8123
+      targetPort: dynmap
+      protocol: TCP
+      name: dynmap
+  selector:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+{{- if .Values.mcmyadmin.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minecraft-ftb.fullname" . }}-mcmyadmin
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.mcmyadmin.service.type }}
+  ports:
+    - port: 8080
+      targetPort: mcmyadmin
+      protocol: TCP
+      name: mcmyadmin
+  selector:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minecraft-ftb.fullname" . }}-minecraft
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.minecraft.service.type }}
+  {{ if .Values.minecraft.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.minecraft.service.loadBalancerIP }}
+  {{ end }}
+  ports:
+    - port: 25565
+      targetPort: minecraft
+      protocol: TCP
+      name: minecraft
+  selector:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

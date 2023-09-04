@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ubooquity.fullname" . }}
+  labels:
+{{ include "ubooquity.labels" . | indent 4 }}
+data:
+  preferences.json: |
+{{- if .Values.config }}
+{{ toJson .Values.config | indent 4 }}
+{{- end }}

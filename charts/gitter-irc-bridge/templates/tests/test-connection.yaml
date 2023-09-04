@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "gitter-irc-bridge.fullname" . }}-test-connection"
+  labels:
+{{ include "gitter-irc-bridge.labels" . | indent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:  ['{{ include "gitter-irc-bridge.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

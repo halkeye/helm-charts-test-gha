@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: "v2.0.1"
+description: Connect to Gitter using the IRC protocol. (halkeye fork/patches)
+name: gitter-irc-bridge
+version: 0.1.1
+sources:
+  - https://gitlab.com/gitlab-org/gitter/irc-bridge
+homepage: https://irc.gitter.im/
+icon: https://gitlab.com/gitlab-org/gitter/webapp/-/raw/develop/public/images/logo/logo-64.png

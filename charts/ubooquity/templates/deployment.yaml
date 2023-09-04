@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+{{- $podAnnotations := .Values.podAnnotations }}
+kind: Deployment
+metadata:
+  name: {{ include "ubooquity.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+{{ include "ubooquity.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- if .Values.strategy }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+{{ if eq .Values.strategy.type "Recreate" }}
+    rollingUpdate: null
+{{- end }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "ubooquity.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ubooquity.selectorLabels" . | nindent 8 }}
+      {{- if $podAnnotations }}
+      annotations:
+        {{- range $key, $value := $podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "ubooquity.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: {{ .Values.config.libraryPortNumber }}
+            - name: http-admin
+              protocol: TCP
+              containerPort: {{ .Values.config.adminPortNumber }}
+          livenessProbe:
+            httpGet:
+              path: /{{ .Values.config.reverseProxyPrefix }}
+              port: http
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /{{ .Values.config.reverseProxyPrefix }}
+              port: http
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+{{- if semverCompare ">=1.16-0" .Capabilities.KubeVersion.GitVersion }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - { name: PUID, value: {{ .Values.puid | quote }} }
+            - { name: GUID, value: {{ .Values.guid | quote }} }
+            - { name: TZ, value: {{ .Values.timezone | quote }} }
+            - { name: MAXMEM, value: {{ .Values.maxmem | quote }} }
+          volumeMounts:
+            - mountPath: /config
+              name: config
+            {{ if .Values.use_config }}
+            - mountPath: /config/preferences.json
+              name: configmap
+              subPath: preferences.json
+            {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: config
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "ubooquity.fullname" .) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if .Values.extraVolumes }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}
+        - name: configmap
+          configMap:
+            name: {{ template "ubooquity.fullname" . }}

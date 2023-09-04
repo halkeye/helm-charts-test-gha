@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "irslackd.fullname" . }}
+  labels:
+{{ include "irslackd.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: irc
+      protocol: TCP
+      name: irc
+  selector:
+    app.kubernetes.io/name: {{ include "irslackd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

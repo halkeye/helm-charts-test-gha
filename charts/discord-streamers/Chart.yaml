@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+appVersion: "latest"
+description: Helm chart for a project I was creating
+deprecated: true
+name: discord-streamers
+version: 0.1.1

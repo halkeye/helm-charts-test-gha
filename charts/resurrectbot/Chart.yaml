@@ -1,0 +1,15 @@
+apiVersion: v1
+appVersion: "v0.1.4"
+description: A slack bot that can ressurect the past
+icon: https://raw.githubusercontent.com/halkeye/slacktalker/master/slack_resurrect/static/logo.jpg
+name: resurrectbot
+version: 0.1.5
+keywords:
+  - slack
+  - app
+home: https://resurrectbot.g4v.dev/
+sources:
+  - https://github.com/halkeye/slacktalker
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

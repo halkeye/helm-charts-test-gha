@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mjpg-streamer.fullname" . }}
+  labels:
+{{ include "mjpg-streamer.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "mjpg-streamer.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "mjpg-streamer.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "mjpg-streamer.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          #command: ["/bin/sh"]
+          #args: ["-c", "sleep 99d"]
+          command: ["./mjpg_streamer"]
+          args:
+            - -i
+            - "input_uvc.so -n -r {{ .Values.resolution }} -f {{ .Values.fps }}"
+            - -o
+            - "output_http.so -p 80 -w /usr/local/share/mjpg-streamer/www"
+          env:
+           - { name: "LD_LIBRARY_PATH", value: "/mjpg-streamer/mjpg-streamer-experimental" }
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+            - mountPath: /dev/video0
+              name: video0
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: video0
+          hostPath:
+            path: {{ .Values.device | quote }}

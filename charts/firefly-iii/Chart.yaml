@@ -1,0 +1,26 @@
+apiVersion: v2
+type: application
+appVersion: "version-5.6.2"
+description: "Firefly III: a personal finances manager"
+name: firefly-iii
+version: 1.0.3
+deprecated: true
+home: https://www.firefly-iii.org/
+icon: https://raw.githubusercontent.com/firefly-iii/firefly-iii/master/public/android-chrome-512x512.png
+sources:
+  - https://github.com/firefly-iii/firefly-iii
+  - https://www.firefly-iii.org/
+keywords:
+  - personal finances
+  - money
+  - banking
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Fix ingress for older than 1.19
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: fireflyiii
+      image: fireflyiii/core:version-5.6.2

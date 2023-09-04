@@ -1,0 +1,21 @@
+apiVersion: v2
+appVersion: "0.2.3"
+description: A PowerDNS web interface with advanced features.
+name: powerdnsadmin
+version: 0.3.1
+type: application
+sources:
+  - https://github.com/ngoduykhanh/PowerDNS-Admin
+engine: gotpl
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Upgrade to latest helm chart templates
+    - Upgrade to app version 0.2.3
+    - Ingress to stable api version
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: powerdns-admin
+      image: ngoduykhanh/powerdns-admin:0.2.3

@@ -1,0 +1,267 @@
+{{- $podAnnotations := .Values.podAnnotations }}
+{{- $configAnnotation := dict "checksum/config" (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+{{- $podAnnotations := merge $podAnnotations $configAnnotation }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wallabag.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+{{ include "wallabag.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- if .Values.strategy }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "wallabag.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "wallabag.selectorLabels" . | nindent 8 }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{- range $key, $value := $podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "wallabag.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: {{ .Chart.Name }}-migrate
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+          command: ['/var/www/wallabag/bin/console']
+          workingDir: '/var/www/wallabag/'
+          args:
+            - doctrine:migrations:migrate
+            - --env=prod
+            - --no-interaction
+          volumeMounts:
+            - mountPath: /var/www/wallabag/web/assets/images
+              name: storage
+            - mountPath: /var/www/wallabag/app/config/parameters.yml
+              name: config
+              subPath: parameters.yml
+            - mountPath: /var/www/wallabag/var/cache
+              name: cache
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_password
+            - {name: SYMFONY__ENV__DATABASE_DRIVER, value: "pdo_pgsql"}
+            - {name: SYMFONY__ENV__DATABASE_DRIVER_CLASS, value: "Wallabag\\CoreBundle\\Doctrine\\DBAL\\Driver\\CustomPostgreSQLDriver"}
+            - name: SYMFONY__ENV__DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_host
+            - name: SYMFONY__ENV__DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_port
+            - name: SYMFONY__ENV__DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_name
+            - name: SYMFONY__ENV__DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_user
+            - name: SYMFONY__ENV__DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_password
+            - name: SYMFONY__ENV__REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: redis_host
+            - name: SYMFONY__ENV__REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: redis_password
+{{ if .Values.wallabag.sentry }}
+            - name: SYMFONY__ENV__SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: sentry_dsn
+{{ end }}
+            - {name: SYMFONY__ENV__FROM_EMAIL, value: {{ .Values.wallabag.email.from | quote }}}
+{{ if .Values.wallabag.email.server }}
+            - {name: SYMFONY__ENV__MAILER_HOST, value: {{ .Values.wallabag.email.server | quote }}}
+{{ end }}
+            - {name: SYMFONY__ENV__DOMAIN_NAME, value: {{ .Values.wallabag.public_url | quote }}}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ['/bin/s6-svscan']
+          args:
+            - /etc/s6/
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_password
+            - {name: SYMFONY__ENV__DATABASE_DRIVER, value: "pdo_pgsql"}
+            - {name: SYMFONY__ENV__DATABASE_DRIVER_CLASS, value: "Wallabag\\CoreBundle\\Doctrine\\DBAL\\Driver\\CustomPostgreSQLDriver"}
+            - name: SYMFONY__ENV__DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_host
+            - name: SYMFONY__ENV__DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_port
+            - name: SYMFONY__ENV__DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_name
+            - name: SYMFONY__ENV__DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_user
+            - name: SYMFONY__ENV__DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: postgres_password
+            - name: SYMFONY__ENV__REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: redis_host
+            - name: SYMFONY__ENV__REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: redis_password
+{{ if .Values.wallabag.sentry }}
+            - name: SYMFONY__ENV__SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wallabag.fullname" . }}
+                  key: sentry_dsn
+{{ end }}
+            - {name: SYMFONY__ENV__FROM_EMAIL, value: {{ .Values.wallabag.email.from | quote }}}
+{{ if .Values.wallabag.email.server }}
+            - {name: SYMFONY__ENV__MAILER_HOST, value: {{ .Values.wallabag.email.server | quote }}}
+{{ end }}
+            - {name: SYMFONY__ENV__DOMAIN_NAME, value: {{ .Values.wallabag.public_url | quote }}}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:80/login
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:80/login
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+{{- if semverCompare ">=1.16-0" .Capabilities.KubeVersion.GitVersion }}
+          startupProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:80/login
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /var/www/wallabag/web/assets/images
+              name: storage
+            - mountPath: /var/www/wallabag/app/config/parameters.yml
+              name: config
+              subPath: parameters.yml
+            - mountPath: /var/www/wallabag/var/cache
+              name: cache
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "wallabag.fullname" . }}
+            items:
+              - key: parameters.yml
+                path: parameters.yml
+        - name: cache
+          emptyDir: {}
+        - name: storage
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            {{- if .Values.persistence.existingClaim }}
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+            claimName: {{ include "wallabag.fullname" . }}
+            {{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

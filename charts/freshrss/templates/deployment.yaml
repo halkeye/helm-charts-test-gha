@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "freshrss.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "freshrss.name" . }}
+    helm.sh/chart: {{ include "freshrss.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "freshrss.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "freshrss.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: CRON_MIN
+              value: {{ join "," .Values.freshrss.cron_min | quote }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/FreshRSS/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ template "freshrss.fullname" . }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

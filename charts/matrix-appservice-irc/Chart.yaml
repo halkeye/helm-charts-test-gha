@@ -1,0 +1,27 @@
+apiVersion: v2
+type: application
+appVersion: "0.34.0"
+version: 0.1.19
+name: matrix-appservice-irc
+description: Matrix <--> IRC Bridge
+keywords:
+  - synapse
+  - chat
+  - matrix
+  - riot
+  - irc
+home: https://github.com/matrix-org/matrix-appservice-irc
+sources:
+  - https://github.com/matrix-org/matrix-appservice-irc
+  - https://hub.docker.com/r/matrixdotorg/matrix-appservice-irc
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Updated to 0.34.0
+    - Security fix for https://matrix.org/blog/2022/05/04/0-34-0-security-release-for-matrix-appservice-irc-high-severity
+  artifacthub.io/containsSecurityUpdates: "true"
+  artifacthub.io/images: |
+    - name: matrix-appservice-irc
+      image: matrixdotorg/matrix-appservice-irc:release-0.34.0

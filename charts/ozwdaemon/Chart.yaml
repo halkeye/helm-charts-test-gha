@@ -1,0 +1,20 @@
+apiVersion: v2
+appVersion: amd64-173
+description: OpenZWave Daemon (MQTT and Remote Access)
+name: ozwdaemon
+type: application
+version: 0.1.3
+keywords:
+  - "home automation"
+  - "home assistant"
+  - openzwave
+  - zwave
+  - mqtt
+home: https://github.com/OpenZWave/qt-openzwave
+sources:
+  - https://github.com/OpenZWave/qt-openzwave
+  - https://hub.docker.com/r/openzwave/ozwdaemon
+engine: gotpl
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

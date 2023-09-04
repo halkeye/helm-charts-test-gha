@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nzbhydra2.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ include "nzbhydra2.name" . }}
+    helm.sh/chart: {{ include "nzbhydra2.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.strategyType }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "nzbhydra2.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "nzbhydra2.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      initContainers:
+        - name: init-chown-data
+          image: busybox:1.30.0
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+          command: ["chown", "-R", "{{ .Values.nzbhydra2.uid }}:{{ .Values.nzbhydra2.gid }}", "/config"]
+          volumeMounts:
+            - name: nzbhydra2-config
+              mountPath: /config
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PGID
+              value: {{ .Values.nzbhydra2.gid | quote }}
+            - name: PUID
+              value: {{ .Values.nzbhydra2.uid | quote }}
+            - name: UMASK
+              value: {{ .Values.nzbhydra2.umask | quote }}
+          ports:
+            - name: http
+              containerPort: 5076
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+          - name: nzbhydra2-config
+            mountPath: /config
+          - name: nzbhydra2-data
+            mountPath: /data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: nzbhydra2-config
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ template "nzbhydra2.fullname" . }}-config
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      - name: nzbhydra2-data
+        emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

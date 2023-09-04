@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ozwdaemon.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+{{ include "ozwdaemon.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- if .Values.strategy }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+{{ if eq .Values.strategy.type "Recreate" }}
+    rollingUpdate: null
+{{- end }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "ozwdaemon.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ozwdaemon.selectorLabels" . | nindent 8 }}
+      annotations:
+        seccomp.security.alpha.kubernetes.io/defaultProfileName: unconfined
+      {{- if .Values.podAnnotations }}
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "ozwdaemon.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+#          command: 
+#            - "/bin/sh"
+#            - "-c"
+#            - "/usr/local/bin/ozwdaemon -s /dev/ttyUSB0 --mqtt-server {{ .Values.mqtt.server }}"
+          ports:
+            - name: http
+              containerPort: 1982
+              protocol: TCP
+          env:
+            - { name: "USB_PATH", value: "/dev/ttyUSB0" }
+{{- if .Values.mqtt.server }}
+            - { name: "MQTT_SERVER", value: {{ .Values.mqtt.server | quote }} }
+{{- end }}
+{{- if .Values.mqtt.username }}
+            - { name: "MQTT_USERNAME", value: {{ .Values.mqtt.username | quote }} }
+{{- end }}
+{{- if .Values.mqtt.password }}
+            - { name: "MQTT_PASSWORD", value: {{ .Values.mqtt.password | quote }} }
+{{- end }}
+{{- if .Values.mqtt.tls }}
+            - { name: "MQTT_TLS", value: {{ .Values.mqtt.tls | quote }} }
+{{- end }}
+{{- if .Values.mqtt.network_key }}
+            - { name: "OZW_NETWORK_KEY", value: {{ .Values.mqtt.network_key | quote }} }
+{{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /opt/ozw/config
+            - name: device
+              mountPath: /dev/ttyUSB0
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: device
+          hostPath:
+            path: {{ required "device needs to be set to the usb device" .Values.device | quote }}
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "ozwdaemon.fullname" . }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

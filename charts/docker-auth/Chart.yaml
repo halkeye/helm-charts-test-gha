@@ -1,0 +1,15 @@
+apiVersion: v1
+appVersion: "1.6.0"
+description: Open source token authentication server for Docker Registry 2 
+name: docker-auth
+version: 0.1.1
+keywords:
+  - registry
+  - docker
+home: https://github.com/cesanta/docker_auth/
+sources:
+  - https://github.com/cesanta/docker_auth/
+  - https://hub.docker.com/r/cesanta/docker_auth/
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

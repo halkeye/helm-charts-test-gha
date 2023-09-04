@@ -1,0 +1,21 @@
+apiVersion: v1
+appVersion: "latest"
+description: Thunderdome is an open source agile planning poker tool in the theme of Battling for points
+name: thunderdome-planning-poker
+version: 0.1.1
+icon: https://raw.githubusercontent.com/StevenWeathers/thunderdome-planning-poker/master/frontend/public/img/apple-icon-180x180.png
+keywords:
+  - agile
+  - poker-planning
+  - planning-poker
+  - scrum
+  - thunderdome-planning-poker
+  - thunderdome
+  - stories
+home: https://thunderdome.dev/
+sources:
+  - https://hub.docker.com/r/stevenweathers/thunderdome-planning-poker
+  - https://github.com/StevenWeathers/thunderdome-planning-poker
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

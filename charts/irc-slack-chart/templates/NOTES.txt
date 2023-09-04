@@ -1,0 +1,31 @@
+Inside of Kubernetes, set your IRC client to connecto to:
+
+Hostname: "{{ template "irc-slack.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+Port: 6666
+Password: Token from https://api.slack.com/custom-integrations/legacy-tokens
+
+Outside of Kubernetes:
+
+{{- if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "irc-slack.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+
+  echo Hostname: $NODE_IP
+  echo Port: $NODE_PORT
+  echo Password: Token from https://api.slack.com/custom-integrations/legacy-tokens
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get svc -w {{ include "irc-slack.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "irc-slack.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  echo Hostname: $SERVICE_IP
+  echo Port: {{ .Values.service.port }}
+  echo Password: Token from https://api.slack.com/custom-integrations/legacy-tokens
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "irc-slack.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl port-forward $POD_NAME 6666:{{ .Values.service.port }}
+
+  echo Hostname: localhost
+  echo Port: 6666
+  echo Password: Token from https://api.slack.com/custom-integrations/legacy-tokens
+{{- end }}

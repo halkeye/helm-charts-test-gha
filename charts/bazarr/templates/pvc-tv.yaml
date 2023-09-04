@@ -1,0 +1,24 @@
+{{- if and .Values.bazarr.persistence.tv.enabled (not .Values.bazarr.persistence.tv.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "bazarr.fullname" . }}-tv
+  labels:
+    app.kubernetes.io/name: {{ include "bazarr.name" . }}
+    helm.sh/chart: {{ include "bazarr.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.bazarr.persistence.tv.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range .Values.bazarr.persistence.tv.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.bazarr.persistence.tv.size | quote }}
+  storageClassName: {{ .Values.bazarr.persistence.tv.storageClassName }}
+{{- end -}}

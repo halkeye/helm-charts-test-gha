@@ -1,0 +1,24 @@
+apiVersion: v2
+appVersion: "3e6770"
+version: 0.2.7
+description: Mastodon Twitter Crossposter
+name: mastodon-twitter-poster
+keywords:
+  - twitter
+  - mastodon
+home: https://github.com/halkeye/mastodon-twitter-poster
+sources:
+  - https://github.com/halkeye/mastodon-twitter-poster
+  - https://hub.docker.com/r/halkeye/mastodon-twitter-poster
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Allow providing of DATABASE_URI
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: mastodon-twitter-poster
+      image: halkeye/mastodon-twitter-poster:3e6770
+    - name: statsd-exporter
+      image: prom/statsd-exporter:v0.20.1

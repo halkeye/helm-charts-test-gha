@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "matrix-ircd.fullname" . }}
+  labels:
+{{ include "matrix-ircd.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: irc
+      protocol: TCP
+      name: irc
+  selector:
+    app.kubernetes.io/name: {{ include "matrix-ircd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

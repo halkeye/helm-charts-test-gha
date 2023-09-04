@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cops.fullname" . }}
+  labels:
+{{ include "cops.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "cops.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,10 @@
+apiVersion: v1
+appVersion: "latest"
+description: A SMTP relay host for transactional based emails from within a cluster.
+name: postfix
+version: 0.1.5
+icon: https://raw.githubusercontent.com/halkeye-helm-charts/postfix/master/logo.gif
+homepage: http://www.postfix.org/
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

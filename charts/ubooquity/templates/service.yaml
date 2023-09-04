@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ubooquity.fullname" . }}
+  labels:
+{{ include "ubooquity.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.config.libraryPortNumber }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.config.adminPortNumber }}
+      targetPort: http-admin
+      protocol: TCP
+      name: http-admin
+  selector:
+    {{- include "ubooquity.selectorLabels" . | nindent 4 }}

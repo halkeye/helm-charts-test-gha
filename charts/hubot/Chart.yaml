@@ -1,0 +1,12 @@
+apiVersion: v1
+appVersion: "latest"
+description: A customizable life embetterment robot.
+name: hubot
+version: 0.0.1
+icon: https://hubot.github.com/assets/images/layout/hubot-avatar@2x.png
+sources:
+  - https://hubot.github.com/
+  - https://github.com/halkeye-docker/hubot/
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

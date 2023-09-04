@@ -1,0 +1,11 @@
+apiVersion: v1
+appVersion: "latest"
+description: Gitter appservice for matrix
+name: matrix-appservice-gitter
+version: 0.1.0
+sources:
+  - https://github.com/matrix-org/matrix-appservice-gitter
+  - https://hub.docker.com/r/matrixdotorg/matrix-appservice-gitter
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com

@@ -1,0 +1,140 @@
+# Default values for thelounge.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: thelounge/thelounge
+  tag: "{{ .Chart.AppVersion }}"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # privileged: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  externalTrafficPolicy:
+  type: ClusterIP
+  port: 9000
+
+probes:
+  liveness:
+    failureThreshold: 5
+    periodSeconds: 10
+  readiness:
+    failureThreshold: 5
+    periodSeconds: 10
+  startup:
+    initialDelaySeconds: 5
+    failureThreshold: 30
+    periodSeconds: 10
+
+thelounge:
+  public: false
+  reverseProxy: true
+  maxHistory: 10000
+  theme: "default"
+  prefetch: false
+  prefetchStorage: false
+  prefetchMaxImageSize: 2048
+  fileUpload:
+    enable: false
+    maxFileSize: 10240
+    baseUrl: null
+  leaveMessage: "The Lounge - https://thelounge.chat"
+  ldap:
+    enable: false
+    url: "ldap://ldap.example.com"
+    ## This should also work with TheLounge 4.3+ (due to ldapjs 2.2.0+)
+    ## (Will failover to the next url in the list when the current one does not work)
+    #url:
+    #  - "ldap://ldap-1.example.com"
+    #  - "ldaps://ldap-2.example.com"
+    primaryKey: "uid"
+    bindDn: "uid=my-service,ou=ServiceAccount,dc=example,dc=com"
+    bindPassword: "my-password"
+    filter: "(objectClass=person)(memberOf=ou=accounts,dc=example,dc=com)"
+    searchSuffix: "dc=example,dc=com"
+    scope: "sub"
+
+ingress:
+  enabled: false
+  ## ingress.ingressClassName -- Support for ingress class name that was introduced in kubernetes 1.19
+  ingressClassName:
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  paths:
+    - /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+deploymentAnnotations: {}
+
+## Persist configuration to a persistent volume
+persistence:
+  # persistence.enabled - Should disk persistence be enabled
+  enabled: false
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  existingClaim: ""
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
+  skipuninstall: false

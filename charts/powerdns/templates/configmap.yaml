@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "powerdns.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "powerdns.name" . }}
+    helm.sh/chart: {{ include "powerdns.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  01-general-config.conf: |
+    {{ range $key, $value := .Values.powerdns.config -}}
+    {{ $key }}={{ $value }}
+    {{ end }}
+
+{{ if (.Values.powerdns.api_key) }}
+  00-api-key.conf: |
+    api=yes
+    api-key={{ .Values.powerdns.api_key }}
+    webserver=yes
+    # IP Address of web server to listen on
+    webserver-address=0.0.0.0
+    # Port of web server to listen on
+    webserver-port=8081
+    # Web server access is only allowed from these subnets
+    webserver-allow-from=0.0.0.0/0,::/0
+{{- end }}

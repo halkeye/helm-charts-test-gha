@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pihole.fullname" . }}
+  labels:
+{{ include "pihole.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- if .Values.strategy }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+{{ if eq .Values.strategy.type "Recreate" }}
+    rollingUpdate: null
+{{- end }}
+{{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "pihole.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "pihole.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      hostAliases:
+      - ip: 127.0.0.1
+        hostnames:
+        - pi.hole
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          stdin: true
+          tty: true
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: ServerIP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: DNS1
+              value: 1.1.1.1
+            - name: DNS2
+              value: 1.0.0.1
+            - name: VIRTUAL_HOST
+              value: {{ required "pihole.virtual_host is needed to know what url to use for admin interface" .Values.pihole.virtual_host | quote }}
+            - name: TZ
+              value: {{ .Values.pihole.tz | quote }}
+            - name: WEBPASSWORD
+              value: {{ required "pihole.password needs to be set to get into admin interface" .Values.pihole.password | quote }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+            - name: dns1
+              containerPort: 53
+              protocol: TCP
+            - name: dns2
+              containerPort: 53
+              protocol: UDP
+          volumeMounts:
+            - mountPath: "/etc/dnsmasq.d/05-custom.conf"
+              name: config
+              subPath: 05-custom.conf
+            {{- if and (.Values.pihole.whitelist) (gt (len .Values.pihole.whitelist) 0) }}
+            - mountPath: "/etc/pihole/whitelist.txt"
+              name: config
+              subPath: whitelist.txt
+            {{- end }}
+          livenessProbe:
+            exec:
+              command:
+                - "dig"
+                - "+time=1"
+                - "+tries=5"
+                - "@127.0.0.1"
+                - "localhost"
+          readinessProbe:
+            exec:
+              command:
+                - "dig"
+                - "+time=1"
+                - "+tries=5"
+                - "@127.0.0.1"
+                - "localhost"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "pihole.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

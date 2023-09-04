@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "matrix-dimension.fullname" . }}
+  labels:
+{{ include "matrix-dimension.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "matrix-dimension.selectorLabels" . | nindent 4 }}

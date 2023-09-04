@@ -1,0 +1,39 @@
+---
+apiVersion: v2
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application.
+appVersion: "v4.3.1-2"
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+version: 0.4.0
+name: powerdns
+description: PowerDNS is a DNS server, written in C++ and licensed under the GPL. It runs on most Unix derivatives. PowerDNS features a large number of different backends ranging from simple BIND style zonefiles to relational databases and load balancing/failover algorithms. A DNS recursor is provided as a separate program.
+keywords:
+  - "dns"
+home: https://www.powerdns.com/
+homepage: https://www.powerdns.com/
+sources:
+  - http://github.com/PowerDNS/
+  - http://github.com/halkeye-docker/powerdns/
+engine: gotpl
+## This must be SVG or PNG
+icon: https://www.powerdns.com/img/pDNS_logo_positive_claim_down_screen_xsmall.png
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |
+    - Update to latest of my helm templates
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: nginx
+      image: halkeye/powerdns:v4.3.1-2

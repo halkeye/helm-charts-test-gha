@@ -1,0 +1,99 @@
+# Default values for dontstarvetogether.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: dstacademy/dontstarvetogether
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 10999
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+config:
+  # config.token --  Defines the server's token which is needed to run it. To generate a token you need a copy of DST - http://dont-starve-game.wikia.com/wiki/Guides/Don%E2%80%99t_Starve_Together_Dedicated_Servers#Server_Tokens.
+  token:
+  name: "Dont Starve Together"
+  max_players: 16
+  name_prefix:
+  description:
+  language: english
+  password:
+  offline_enable: false
+  lan_only: false
+  whitelist_slots: 0
+  adminlist: []
+  whitelist: []
+  blocklist: []
+  pvp_enable: false
+  game_mode: survival
+  # intention
+  autosaver_enable: true
+  tick_rate: 15
+  vote_enabled: true
+  pause_when_empty: false
+  steam_group_id:
+  steam_group_only: false
+  steam_group_admins: false
+  shard_enabled: false
+  shard_name:
+  shard_is_master: false
+  shard_master_ip:
+  shard_master_port: 10888
+  shard_bind_ip: 0.0.0.0
+  shard_cluster_key:
+  leveldata_overrides:
+  mods_overrides:
+  backup_log_count:
+
+## Persist configuration to a persistent volume
+persistence:
+  enabled: false
+  existingClaim:
+  storageClassName:
+  accessModes:
+    - ReadWriteMany
+  size: 8Gi

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "minecraft-ftb.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "minecraft-ftb.name" . }}
+    helm.sh/chart: {{ include "minecraft-ftb.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  ops.json: {{ .Values.minecraft.ops | toJson | quote }}

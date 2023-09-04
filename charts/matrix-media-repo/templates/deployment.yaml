@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "matrix-media-repo.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+{{ include "matrix-media-repo.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- if .Values.strategy }}
+  strategy:
+{{ toYaml .Values.strategy | indent 4 }}
+{{ if eq .Values.strategy.type "Recreate" }}
+    rollingUpdate: null
+{{- end }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "matrix-media-repo.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+{{- if .Values.config.metrics.enabled }}
+        prometheus.io/path: /metrics
+        prometheus.io/port: {{ .Values.config.metrics.port | toString | quote }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        {{- include "matrix-media-repo.selectorLabels" . | nindent 8 }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "matrix-media-repo.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+    {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+{{- if semverCompare ">=1.16-0" .Capabilities.KubeVersion.GitVersion }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /data/media-repo.yaml
+            name: config
+            subPath: config.yaml
+          - mountPath: /var/matrix/media
+            name: data
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "matrix-media-repo.fullname" . }}
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "matrix-media-repo.fullname" . }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-{{ include "sevendaysdie.fullname" . }}
+  labels:
+{{ include "sevendaysdie.labels" . | indent 4 }}
+  annotations:
+    metallb.universe.tf/allow-shared-ip: {{ include "sevendaysdie.fullname" . }}
+{{- if .Values.service.annotations }}
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.service.type }}
+{{- if .Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+{{- end }}
+  ports:
+    - port: 26900
+      targetPort: sevendays-tcp-1
+      protocol: TCP
+      name: sevendays-tcp-1
+  selector:
+    app.kubernetes.io/name: {{ include "sevendaysdie.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: udp-{{ include "sevendaysdie.fullname" . }}
+  labels:
+{{ include "sevendaysdie.labels" . | indent 4 }}
+  annotations:
+    metallb.universe.tf/allow-shared-ip: {{ include "sevendaysdie.fullname" . }}
+{{- if .Values.service.annotations }}
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.service.type }}
+{{- if .Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+{{- end }}
+  ports:
+    - port: 26900
+      targetPort: sevendays-udp-1
+      protocol: UDP
+      name: sevendays-udp-1
+    - port: 26901
+      targetPort: sevendays-udp-2
+      protocol: UDP
+      name: sevendays-udp-2
+    - port: 26902
+      targetPort: sevendays-udp-3
+      protocol: UDP
+      name: sevendays-udp-3
+  selector:
+    app.kubernetes.io/name: {{ include "sevendaysdie.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sevendaysdie.fullname" . }}
+  labels:
+{{ include "sevendaysdie.labels" . | indent 4 }}
+  annotations:
+    metallb.universe.tf/allow-shared-ip: {{ include "sevendaysdie.fullname" . }}
+{{- if .Values.nonGameService.annotations }}
+{{ toYaml .Values.nonGameService.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.nonGameService.type }}
+{{- if .Values.nonGameService.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.nonGameService.externalTrafficPolicy }}
+{{- end }}
+  ports:
+    - port: 8080
+      targetPort: sevendays-adm-1
+      protocol: TCP
+      name: sevendays-adm-1
+    - port: 8081
+      targetPort: sevendays-adm-2
+      protocol: TCP
+      name: sevendays-adm-2
+    - port: 8082
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "sevendaysdie.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---

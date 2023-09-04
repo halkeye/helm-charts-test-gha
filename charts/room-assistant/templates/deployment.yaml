@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "room-assistant.fullname" . }}
+  labels:
+{{ include "room-assistant.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "room-assistant.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "room-assistant.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "room-assistant.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      hostNetwork: true
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN", "SYS_ADMIN"]
+          env:
+            - {name: AUTO_DISCOVERY, value: {{ .Values.roomAssistant.auto_discovery | quote }} }
+            - {name: ROOM, value: {{ .Values.roomAssistant.room | quote }}}
+            - {name: MQTT_URL, value: {{ .Values.roomAssistant.mqtt_url | quote }}}
+            - {name: SERVICES, value: {{ include "room-assistant.joinListWithComma" .Values.roomAssistant.services | quote }}}
+{{- if gt (len .Values.roomAssistant.ble_whitelist) 0 }}
+            - {name: BLE_WHITELIST_REGEX, value: "true"}
+            - {name: BLE_WHITELIST, value: {{ .Values.roomAssistant.ble_whitelist | toJson | quote }} }
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

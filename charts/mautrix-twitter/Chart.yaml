@@ -1,0 +1,25 @@
+apiVersion: v2
+type: application
+appVersion: latest
+description: A Matrix-Twitter puppeting bridge.
+name: mautrix-twitter
+version: 1.0.4
+keywords:
+  - synapse
+  - chat
+  - matrix
+  - twitter
+  - bridge
+home: https://github.com/mautrix/twitter
+sources:
+  - https://github.com/mautrix/twitter
+maintainers:
+  - name: Gavin Mogan
+    email: helm@gavinmogan.com
+annotations:
+  artifacthub.io/changes: |2
+     - "remove sha from appVersion ([10a8935](https://github.com/halkeye-helm-charts/mautrix-twitter/commit/10a8935a88f87f729538b98454967d852f533ccb))"
+  artifacthub.io/containsSecurityUpdates: 'false'
+  artifacthub.io/images: |
+    - name: mautrix-googlechat
+      image: "dock.mau.dev/mautrix/twitter:latest"

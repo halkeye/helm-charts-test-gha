@@ -1,0 +1,182 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sevendaysdie.fullname" . }}
+  labels:
+{{ include "sevendaysdie.labels" . | indent 4 }}
+data:
+  serveradmin.xml: |
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!--
+           This file holds the settings for who is banned, whitelisted,
+           admins and server command permissions.
+           Steam ID can be found using http://steamid.co/
+
+           STEAM ID INSTRUCTIONS:
+           ===============================================================
+           You can find the SteamID64 of any user with one of the following pages:
+           https://steamdb.info/calculator/, https://steamid.io/lookup, http://steamid.co/
+           http://steamid.co/ instructions:
+           Input the player's name in the search field. example: Kinyajuu
+           If the name doesn't work, you can also use the url of their steam page.
+           Also you may add/remove admins, mods, whitelist, blacklist using in game commands.
+           You will want the STEAM64ID. example: 76561198021925107
+
+           PERMISSION LEVEL INSTRUCTIONS:
+           ===============================================================
+           permission level : 0-1000, a user may run any command equal to or above their permission level.
+           Users not given a permission level in this file will have a default permission level of 1000!
+
+           COMMAND PERMISSIONS INSTRUCTIONS:
+           ===============================================================
+           cmd : This is the command name, any command not in this list will not be usable by anyone but the server.
+           permission level : 0-1000, a user may run any command equal to or above their permission level.
+           Commands not specified in this file will have a default permission level of 0!
+
+          EVERYTHING BETWEEN <!- - and - -> IS COMMENTED OUT! THE ENTRIES BELOW ARE EXAMPLES THAT ARE NOT ACTIVE!!!
+        -->
+
+        <adminTools>
+            <admins>
+                {{- range .Values.admins }}
+                <admin steamID={{ .id | quote }} permission_level={{ .permission | quote }} />
+                {{- end }}
+            </admins>
+
+            <permissions>
+                {{- range $permission, $level := .Values.permissions }}
+                <permission cmd="{{ $permission}}" permission_level="{{ $level }}" />
+                {{- end }}
+            </permissions>
+
+            <!-- ONLY PUT ITEMS IN WHITELIST IF YOU WANT WHITELIST ONLY ENABLED!!! -->
+            <!-- If there are any items in the whitelist, the whitelist only mode is enabled -->
+            <!-- Nobody can join that ISN'T in the whitelist or admins once whitelist only mode is enabled -->
+
+            <whitelist>
+                {{- range .Values.whitelist }}
+                <whitelisted steamID={{ .id | quote }} />
+                {{- end }}
+            </whitelist>
+
+            <blacklist>
+                {{- range .Values.blacklist }}
+                <blacklisted steamID={{ .id | quote }} unbandate={{ .unbandate | quote }} />
+                {{- end }}
+            </blacklist>
+        </adminTools>
+  serverconfig.xml: |
+    <?xml version="1.0"?>
+    <ServerSettings>
+      <!-- GENERAL SERVER SETTINGS -->
+
+      <!-- Server representation -->
+      <property name="ServerName" value={{ .Values.settings.ServerName | quote }} />
+      <property name="ServerDescription" value={{ .Values.settings.ServerDescription | quote }} />
+      <property name="ServerWebsiteURL" value={{ .Values.settings.ServerWebsite | quote }} />
+      <property name="ServerPassword" value={{ .Values.settings.ServerPassword | quote }} />
+      <property name="ServerLoginConfirmationText" value={{ .Values.settings.ServerLoginConfirmationText | quote }} />
+
+      <!-- Networking -->
+      <property name="ServerPort" value="26900"/>                         <!-- Port you want the Server to listen on. -->
+      <property name="ServerVisibility" value={{ .Values.settings.ServerVisibility | quote }} />
+      <property name="ServerDisabledNetworkProtocols" value={{ .Values.settings.ServerDisabledNetworkProtocols | quote }} />
+      <property name="ServerMaxWorldTransferSpeedKiBs" value={{ .Values.settings.ServerMaxWorldTransferSpeedKiBs | quote }} />
+
+      <!-- Slots -->
+      <property name="ServerMaxPlayerCount" value={{ .Values.settings.ServerMaxPlayerCount | quote }} />
+      <property name="ServerReservedSlots"  value={{ .Values.settings.ServerReservedSlots | quote }} />
+      <property name="ServerReservedSlotsPermission"  value={{ .Values.settings.ServerReservedSlotsPermission | quote }} />
+      <property name="ServerAdminSlots"  value={{ .Values.settings.ServerAdminSlots | quote }} />
+      <property name="ServerAdminSlotsPermission"  value={{ .Values.settings.ServerAdminSlotsPermission | quote }} />
+
+      <!-- Admin interfaces -->
+      <property name="ControlPanelEnabled" value="true"/>                         <!-- Enable/Disable the web control panel -->
+      <property name="ControlPanelPort" value="8080"/>                          <!-- Port of the control panel webpage -->
+      <property name="ControlPanelPassword" value={{ .Values.settings.ControlPanelPassword | quote }} />
+
+      <property name="TelnetEnabled" value="true"/>                          <!-- Enable/Disable the telnet -->
+      <property name="TelnetPort" value="8081"/>                          <!-- Port of the telnet server -->
+      <property name="TelnetPassword" value={{ .Values.settings.TelnetPassword | quote }} />
+      <property name="TelnetFailedLoginLimit" value="10"/>                            <!-- After this many wrong passwords from a single remote client the client will be blocked from connecting to the Telnet interface -->
+      <property name="TelnetFailedLoginsBlocktime" value="10"/>                            <!-- How long will the block persist (in seconds) -->
+      <property name="TerminalWindowEnabled" value="true"/>                          <!-- Show a terminal window for log output / command input (Windows only) -->
+      <!-- Folder and file locations -->
+      <property name="AdminFileName" value="serveradmin.xml"/>       <!-- Server admin file name. Path relative to the SaveGameFolder -->
+      <!-- <property name="UserDataFolder" value="absolute path" /> -->    <!-- Use this to override where the server stores all generated data, including RWG generated worlds. Do not forget to uncomment the entry! -->
+      <!-- <property name="SaveGameFolder" value="absolute path" /> -->    <!-- Use this to only override the save game path. Do not forget to uncomment the entry! -->
+
+      <!-- Other technical settings -->
+      <property name="EACEnabled" value={{ .Values.settings.EACEnabled | quote }} />
+      <property name="HideCommandExecutionLog" value="0"/>                                     <!-- Hide logging of command execution. 0 = show everything, 1 = hide only from Telnet/ControlPanel, 2 = also hide from remote game clients, 3 = hide everything -->
+      <property name="MaxUncoveredMapChunksPerPlayer" value="131072"/>                        <!-- Override how many chunks can be uncovered on the ingame map by each player. Resulting max map file size limit per player is (x * 512 Bytes), uncovered area is (x * 256 m²). Default 131072 means max 32 km² can be uncovered at any time -->
+      <property name="PersistentPlayerProfiles" value={{ .Values.settings.PersistentPlayerProfiles | quote }} />
+
+      <!-- GAMEPLAY -->
+
+      <!-- World -->
+      <property name="GameWorld" value={{ .Values.settings.GameWorld | quote }} />
+      <property name="WorldGenSeed" value={{ .Values.settings.WorldGenSeed | quote }} />
+      <property name="WorldGenSize" value={{ .Values.settings.WorldGenSize | quote }} />
+      <property name="GameName" value={{ .Values.settings.GameName | quote }} />
+      <property name="GameMode" value="GameModeSurvival"/>      <!-- GameModeSurvival -->
+
+      <!-- Difficulty -->
+      <property name="GameDifficulty" value="2"/>                                     <!-- 0 - 5, 0=easiest, 5=hardest -->
+      <property name="BlockDamagePlayer" value="100" />                          <!-- How much damage do players to blocks (percentage in whole numbers) -->
+      <property name="BlockDamageAI" value="100" />                          <!-- How much damage do AIs to blocks (percentage in whole numbers) -->
+      <property name="BlockDamageAIBM" value="100" />                          <!-- How much damage do AIs during blood moons to blocks (percentage in whole numbers) -->
+      <property name="XPMultiplier" value="100" />                          <!-- XP gain multiplier (percentage in whole numbers) -->
+      <property name="PlayerSafeZoneLevel" value="5" />                            <!-- If a player is less or equal this level he will create a safe zone (no enemies) when spawned -->
+      <property name="PlayerSafeZoneHours" value="5" />                            <!-- Hours in world time this safe zone exists -->
+
+      <!--  -->
+      <property name="BuildCreate" value="false" />                        <!-- cheat mode on/off -->
+      <property name="DayNightLength" value="60" />                           <!-- real time minutes per in game day: 60 minutes -->
+      <property name="DayLightLength" value="18" />                           <!-- in game hours the sun shines per day: 18 hours day light per in game day -->
+      <property name="DropOnDeath" value="1" />                            <!-- 0 = nothing, 1 = everything, 2 = toolbelt only, 3 = backpack only, 4 = delete all -->
+      <property name="DropOnQuit" value="0" />                            <!-- 0 = nothing, 1 = everything, 2 = toolbelt only, 3 = backpack only -->
+      <property name="BedrollDeadZoneSize" value="15" />                           <!-- Size (box "radius", so a box with 2 times the given value for each side's length) of bedroll deadzone, no zombies will spawn inside this area, and any cleared sleeper volumes that touch a bedroll deadzone will not spawn after they've been cleared. -->
+      <property name="BedrollExpiryTime" value="45" />                           <!-- Number of days a bedroll stays active after owner was last online -->
+
+      <!-- Performance related -->
+      <property name="MaxSpawnedZombies" value="64" />                           <!-- This setting covers the entire map. There can only be this many zombies on the entire map at one time. Changing this setting has a huge impact on performance. -->
+      <property name="MaxSpawnedAnimals" value="50" />                           <!-- If your server has a large number of players you can increase this limit to add more wildlife. Animals don't consume as much CPU as zombies. NOTE: That this doesn't cause more animals to spawn arbitrarily: The biome spawning system only spawns a certain number of animals in a given area, but if you have lots of players that are all spread out then you may be hitting the limit and can increase it. -->
+      <property name="ServerMaxAllowedViewDistance" value="12" />                           <!-- Max viewdistance a client may request (6 - 12). High impact on memory usage and performance. -->
+
+      <!-- Zombie settings -->
+      <property name="EnemySpawnMode" value="true" />                         <!-- Enable/Disable enemy spawning -->
+      <property name="EnemyDifficulty" value="0" />                            <!-- 0 = Normal, 1 = Feral -->
+      <property name="ZombieMove" value="0" />                            <!-- 0-4 (walk, jog, run, sprint, nightmare) -->
+      <property name="ZombieMoveNight" value="3" />                            <!-- 0-4 (walk, jog, run, sprint, nightmare) -->
+      <property name="ZombieFeralMove" value="3" />                            <!-- 0-4 (walk, jog, run, sprint, nightmare) -->
+      <property name="ZombieBMMove" value="3" />                            <!-- 0-4 (walk, jog, run, sprint, nightmare) -->
+      <property name="BloodMoonFrequency" value="7" />                            <!-- What frequency (in days) should a blood moon take place. Set to "0" for no blood moons -->
+      <property name="BloodMoonRange" value="0" />                            <!-- How many days can the actual blood moon day randomly deviate from the above setting. Setting this to 0 makes blood moons happen exactly each Nth day as specified in BloodMoonFrequency -->
+      <property name="BloodMoonWarning" value="8" />                            <!-- The Hour number that the red day number begins on a blood moon day. Setting this to -1 makes the red never show.  -->
+      <property name="BloodMoonEnemyCount" value="8" />                            <!-- This is the number of zombies that can be alive (spawned at the same time) at any time PER PLAYER during a blood moon horde, however, MaxSpawnedZombies overrides this number in multiplayer games. Also note that your game stage sets the max number of zombies PER PARTY. Low game stage values can result in lower number of zombies than the BloodMoonEnemyCount setting. Changing this setting has a huge impact on performance. -->
+
+      <!-- Loot -->
+      <property name="LootAbundance" value="100" />                          <!-- percentage in whole numbers -->
+      <property name="LootRespawnDays" value="30" />                           <!-- days in whole numbers -->
+      <property name="AirDropFrequency" value="72"/>                            <!-- How often airdrop occur in game-hours, 0 == never -->
+      <property name="AirDropMarker" value="false"/>                         <!-- Sets if a marker is added to map/compass for air drops. -->
+
+      <!-- Multiplayer -->
+      <property name="PartySharedKillRange" value="100"/>                           <!-- The distance you must be within to receive party shared kill xp and quest party kill objective credit. -->
+      <property name="PlayerKillingMode" value="3" />                            <!-- Player Killing Settings (0 = No Killing, 1 = Kill Allies Only, 2 = Kill Strangers Only, 3 = Kill Everyone) -->
+
+      <!-- Land claim options -->
+      <property name="LandClaimCount" value="1"/>                                     <!-- Maximum allowed land claims per player. -->
+      <property name="LandClaimSize" value="41"/>                            <!-- Size in blocks that is protected by a keystone -->
+      <property name="LandClaimDeadZone" value="30"/>                            <!-- Keystones must be this many blocks apart (unless you are friends with the other player) -->
+      <property name="LandClaimExpiryTime" value="7"/>                                     <!-- The number of days a player can be offline before their claims expire and are no longer protected -->
+      <property name="LandClaimDecayMode" value="0"/>                                     <!-- Controls how offline players land claims decay. 0=Slow (Linear) , 1=Fast (Exponential), 2=None (Full protection until claim is expired). -->
+      <property name="LandClaimOnlineDurabilityModifier" value="4"/>                             <!-- How much protected claim area block hardness is increased when a player is online. 0 means infinite (no damage will ever be taken). Default is 4x -->
+      <property name="LandClaimOfflineDurabilityModifier" value="4"/>                             <!-- How much protected claim area block hardness is increased when a player is offline. 0 means infinite (no damage will ever be taken). Default is 4x -->
+      <property name="LandClaimOfflineDelay" value="0"/>                                     <!-- The number of minutes after a player logs out that the land claim area hardness transitions from online to offline. Default is 0 -->
+
+      <!-- There are several game settings that you cannot change when starting a new game.
+      You can use console commands to change at least some of them ingame.
+      setgamepref BedrollDeadZoneSize 30 -->
+    </ServerSettings>
