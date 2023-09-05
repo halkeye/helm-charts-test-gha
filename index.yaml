@@ -7270,6 +7270,44 @@ entries:
         - name: synapse
           image: "matrixdotorg/synapse:v1.90.0"
     apiVersion: v2
+    appVersion: v1.90.0
+    created: "2023-09-05T05:22:12.886127655Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: ~12.3.0
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: ~17.10.0
+    description: The reference implementation for a Matrix.org chat server
+    digest: 23f1aad5ca15f344af22107cd67fd1833bb2175a9a513c3a1a9d964e02a45f39
+    home: https://github.com/matrix-org/synapse
+    keywords:
+    - synapse
+    - chat
+    - matrix
+    - riot
+    maintainers:
+    - email: helm@gavinmogan.com
+      name: Gavin Mogan
+    name: synapse
+    sources:
+    - https://github.com/matrix-org/synapse
+    - https://hub.docker.com/r/matrixdotorg/synapse
+    - https://matrix.org/blog/home/
+    type: application
+    urls:
+    - https://github.com/halkeye/helm-charts-test-gha/releases/download/synapse-0.22.2/synapse-0.22.2.tgz
+    version: 0.22.2
+  - annotations:
+      artifacthub.io/changes: |2
+         - "**deps:** update matrixdotorg/synapse docker tag to v1.90.0 ([7c2116c](https://github.com/halkeye-helm-charts/synapse/commit/7c2116ce69f0d17c047f7eee409e95b7c9a697dd))"
+      artifacthub.io/images: |
+        - name: synapse
+          image: "matrixdotorg/synapse:v1.90.0"
+    apiVersion: v2
     appVersion: v1.80.0
     created: "2023-08-18T17:23:50.418760477Z"
     dependencies:
@@ -11697,4 +11735,4 @@ entries:
     urls:
     - whoami/whoami-0.3.1.tgz
     version: 0.3.1
-generated: "2023-08-18T17:23:48.697184009Z"
+generated: "2023-09-05T05:22:12.887289051Z"
