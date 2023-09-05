@@ -8,7 +8,7 @@
   "regexManagers": [
     {
       "fileMatch": [
-        "^charts/synapse/Chart.yaml$"
+        "^charts/*/Chart.yaml$"
       ],
       "matchStrings": [
         "image:\\s+\"(?<depName>[a-z/.-]+):(?<currentValue>[a-z0-9.-]+)\""
@@ -18,12 +18,11 @@
     },
     {
       "fileMatch": [
-        "^charts/synapse/Chart.yaml$"
+        "^charts/*/Chart.yaml$"
       ],
       "matchStrings": [
-        "appVersion:\\s+\"(?<currentValue>v[a-z0-9.-]+)\""
+        "appVersion:\\s+\"(?<currentValue>v[a-z0-9.-]+)\" # image: \"(?<depName>[a-z/.-]+)\""
       ],
-      "depNameTemplate": "matrixdotorg/synapse",
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
     }
