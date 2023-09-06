@@ -40,10 +40,10 @@ jobs:
 
       - name: Helm Deps
         run: |
+          ITER=0
           for dir in $(find charts -name Chart.lock -exec dirname {} \;); do
             pushd "$dir"
-            ITER=0
-            for url in $(grep repository Chart.lock | awk '{print $2}' | sort | uniq); do
+            for url in $(grep repository Chart.yaml | awk '{print $2}' | sort | uniq); do
               helm repo add repo${ITER} ${url}
               ITER=$(expr $ITER + 1)
             done
