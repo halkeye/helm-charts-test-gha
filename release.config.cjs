@@ -16,6 +16,7 @@ if (!chartPath) {
 module.exports = {
   "branches": [
     "main",
+    "main2",
     "master"
   ],
   "tagFormat": "v${version}",
