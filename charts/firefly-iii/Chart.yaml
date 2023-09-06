@@ -1,9 +1,9 @@
 apiVersion: v2
 type: application
-appVersion: "version-5.6.2"
-description: "Firefly III: a personal finances manager"
+appVersion: version-5.6.2
+description: 'Firefly III: a personal finances manager'
 name: firefly-iii
-version: 1.0.3
+version: 1.0.0
 deprecated: true
 home: https://www.firefly-iii.org/
 icon: https://raw.githubusercontent.com/firefly-iii/firefly-iii/master/public/android-chrome-512x512.png
@@ -18,9 +18,12 @@ maintainers:
   - name: Gavin Mogan
     email: helm@gavinmogan.com
 annotations:
-  artifacthub.io/changes: |
-    - Fix ingress for older than 1.19
-  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/changes: |2
+     - "deprecate firefly-iii ([da11398](https://github.com/halkeye/helm-charts-test-gha/commit/da1139823ec0eaa8933d1c19edee4c76b8b93c81))"
+     - "**dontstarvetogether:** deprecate chart ([b006f43](https://github.com/halkeye/helm-charts-test-gha/commit/b006f4336bf23613afb1c0c19f011a4ac3f684a0))"
+     - "bump synapse ([387fb5c](https://github.com/halkeye/helm-charts-test-gha/commit/387fb5c04e010b785d9d3ac2837440c6097576d9))"
+     - "deprecate cops chart ([bbe97b7](https://github.com/halkeye/helm-charts-test-gha/commit/bbe97b79037d76efc8145edaa2484db40c6a9694))"
+  artifacthub.io/containsSecurityUpdates: 'false'
   artifacthub.io/images: |
     - name: fireflyiii
       image: fireflyiii/core:version-5.6.2
