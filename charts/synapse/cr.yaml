@@ -1,2 +1,0 @@
-release-name-template: "synapse-v{{ .Version }}"
-release-notes-file: CHANGELOG.md
